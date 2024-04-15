@@ -1,0 +1,50 @@
+struct 
+- struct là kiểu dữ liệu tạo ra từ những kiểu dữ liệu có sẵn
+vd: s := []struct { i int b bool} {
+  {1, true}, {2, false}
+}
+
+slice
+- slice là những lát cắt mảng, khi được trích xuất ra từ array là con trỏ tới array
+Cú pháp: nameArray[Số phần tử bỏ, Số phần tử lấy] 
+vd: names := [4]string("a", "b", "c", "d")
+    slice := names[0:2]     // ["a", "b"]
+- length là số lượng element thực sự có trong 1 slice
+- capacity là số lượng tối đa một slice chứa được 
+
+closures
+
+Một function closure xảy ra khi một hàm (function) được tạo ra trong một ngữ cảnh (context) và có thể truy cập 
+và sử dụng các biến cục bộ (local variables) của ngữ cảnh đó, ngay cả khi hàm được gọi ở một ngữ cảnh khác. 
+Điều này có nghĩa là hàm closure "gói" (encapsulates) các biến và môi trường xung quanh của nó, và các biến này vẫn 
+có thể được truy cập và duy trì giá trị sau khi ngữ cảnh ban đầu đã kết thúc.
+
+Một function closure bao gồm hai thành phần chính:
+
+Hàm (function): Là một khối mã (code block) trong ngôn ngữ lập trình, có thể nhận đầu vào và trả về giá trị.
+Môi trường (environment): Bao gồm các biến cục bộ và giá trị của chúng tại thời điểm tạo ra hàm closure.
+vd:
+function outerFunction() {
+  var outerVariable = 'Hello';
+
+  function innerFunction() {
+    console.log(outerVariable); // Đây là một closure
+  }
+
+  return innerFunction;
+}
+
+var closure = outerFunction();
+closure(); // Kết quả: "Hello"
+
+Method 
+- Là khai báo thêm một method ví dụ như một cái hàm nào đó vào một biến cụ thể
+
+type Vertex struct {X, Y float64}
+
+func (v Vertex) Abs() float64 { return math.Sqrt(v.X * v.X + v.Y * v.Y)}
+
+func main () { v:= Vertex{3,4}
+  fmt.Println(v.Abs())
+}
+

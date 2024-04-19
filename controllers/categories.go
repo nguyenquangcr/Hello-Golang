@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	database "my-app/Database"
+	"my-app/constants"
 	"my-app/models"
 	"my-app/utils"
 	"net/http"
@@ -14,9 +15,9 @@ import (
 )
 
 func GetCategoriesList(c *gin.Context) {
+	// Get list categories
+	rows, err := database.DB.Query(constants.GetCategoriesListQuery)
 
-	// Thực hiện truy vấn để lấy danh sách người dùng
-	rows, err := database.DB.Query("SELECT id, name FROM categories")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -45,6 +46,24 @@ func GetCategoriesList(c *gin.Context) {
 	})
 }
 
+func GetDetailCategory(c *gin.Context) {
+	categoryID := c.Param("id")
+
+	// Thực hiện truy vấn SELECT để lấy thông tin chi tiết danh mục
+	var category models.Category
+	err := database.DB.QueryRow(constants.GetDetailCategoryQuery, categoryID).Scan(&category.ID, &category.Name)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			c.JSON(http.StatusNotFound, gin.H{"error": "Category not found"})
+		} else {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve category"})
+		}
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"data": category})
+}
+
 func CreateCategory(c *gin.Context) {
 	var newCategory models.Category
 	if err := c.ShouldBindJSON(&newCategory); err != nil {
@@ -58,7 +77,7 @@ func CreateCategory(c *gin.Context) {
 	}
 
 	// Thực hiện truy vấn INSERT để lưu trữ thông tin danh mục
-	_, err := database.DB.Exec("INSERT INTO categories (name) VALUES (?)", newCategory.Name)
+	_, err := database.DB.Exec(constants.CreateCategoryQuery, newCategory.Name)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create category"})
 		return
@@ -83,7 +102,7 @@ func UpdateCategory(c *gin.Context) {
 	}
 
 	// Thực hiện truy vấn UPDATE để cập nhật thông tin danh mục
-	_, err := database.DB.Exec("UPDATE categories SET name = ? WHERE id = ?", updatedCategory.Name, categoryID)
+	_, err := database.DB.Exec(constants.UpdateCategoryQuery, updatedCategory.Name, categoryID)
 	if err != nil {
 		fmt.Println("err ", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update category"})
@@ -99,29 +118,11 @@ func DeleteCategory(c *gin.Context) {
 	categoryID := c.Param("id")
 
 	// Thực hiện truy vấn DELETE để xóa danh mục
-	_, err := database.DB.Exec("DELETE FROM categories WHERE id = ?", categoryID)
+	_, err := database.DB.Exec(constants.DeleteCategoryQuery, categoryID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete category"})
 		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "Category deleted successfully"})
-}
-
-func GetDetailCategory(c *gin.Context) {
-	categoryID := c.Param("id")
-
-	// Thực hiện truy vấn SELECT để lấy thông tin chi tiết danh mục
-	var category models.Category
-	err := database.DB.QueryRow("SELECT * FROM categories WHERE id = ?", categoryID).Scan(&category.ID, &category.Name)
-	if err != nil {
-		if err == sql.ErrNoRows {
-			c.JSON(http.StatusNotFound, gin.H{"error": "Category not found"})
-		} else {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve category"})
-		}
-		return
-	}
-
-	c.JSON(http.StatusOK, gin.H{"data": category})
 }

@@ -9,3 +9,13 @@ func IsRequiredFieldEmpty(field interface{}, fieldName string) bool {
 	}
 	return false
 }
+
+func AreRequiredFieldsEmpty(fields ...interface{}) bool {
+	for _, field := range fields {
+		if field == nil || field == "" {
+			fmt.Println("A required field is empty")
+			return true
+		}
+	}
+	return false
+}

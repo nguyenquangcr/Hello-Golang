@@ -2,6 +2,7 @@ package main
 
 import (
 	database "my-app/Database"
+	"my-app/constants"
 	"my-app/path"
 
 	"github.com/gin-gonic/gin"
@@ -9,9 +10,8 @@ import (
 )
 
 func main() {
-	// Kết nối tới cơ sở dữ liệu MySQL
-	connStr := "root:@tcp(localhost:3306)/shopapp"
-	database.InitDB(connStr)
+	// Func connection databse
+	database.InitDB(constants.ConnectionString)
 
 	router := gin.Default()
 	api := router.Group("/api/v1")
@@ -25,6 +25,10 @@ func main() {
 		categories := api.Group("/categories")
 		{
 			path.SetupCategoriesRoutes(categories)
+		}
+		products := api.Group("/products")
+		{
+			path.SetupProductsRoutes(products)
 		}
 	}
 

@@ -7,4 +7,4 @@ var SecretKey string = "your-SecretKey"
 var BucketName string = "your-BucketName"
 
 //database
-var ConnectionString string = "root:@tcp(localhost:3306)/shopapp?parseTime=true"
+var ConnectionString string = "root:123456789@tcp(localhost:3306)/shopapp?parseTime=true"

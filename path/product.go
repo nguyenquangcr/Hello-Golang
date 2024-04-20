@@ -10,6 +10,6 @@ func SetupProductsRoutes(userGroup *gin.RouterGroup) {
 	userGroup.GET("/", controllers.GetProductList)
 	userGroup.POST("/", controllers.CreateProduct)
 	// userGroup.GET("/:id", controllers.GetDetailCategory)
-	// userGroup.PUT("/:id", controllers.UpdateCategory)
+	userGroup.PUT("/:id", controllers.UpdateProduct)
 	// userGroup.DELETE("/:id", controllers.DeleteCategory)
 }

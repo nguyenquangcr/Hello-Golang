@@ -20,6 +20,4 @@ func InitDB(connStr string) {
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	log.Println("Kết nối thành công đến cơ sở dữ liệu")
 }

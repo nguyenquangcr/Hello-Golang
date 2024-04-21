@@ -9,6 +9,7 @@ import (
 	"my-app/models"
 	"my-app/utils"
 	"net/http"
+	"path"
 
 	"github.com/gin-gonic/gin"
 )
@@ -43,6 +44,24 @@ func GetProductList(c *gin.Context) {
 		"data":    gin.H{"products": products},
 		"message": "success!",
 	})
+}
+
+func GetDetailProduct(c *gin.Context) {
+	productID := c.Param("id")
+
+	var detailProduct models.Product
+	err := database.DB.QueryRow("SELECT * FROM products WHERE id = ?", productID).Scan(&detailProduct.ID, &detailProduct.Name, &detailProduct.Price,
+		&detailProduct.Thumbnail, &detailProduct.Description, &detailProduct.CreatedAt, &detailProduct.UpdatedAt, &detailProduct.CategoryID)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			c.JSON(http.StatusNotFound, gin.H{"error": "Product not found"})
+		} else {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve product"})
+		}
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"data": detailProduct, "message": "Success"})
 }
 
 func CreateProduct(c *gin.Context) {
@@ -109,15 +128,14 @@ func UpdateProduct(c *gin.Context) {
 	}
 
 	if len(newProduct.Files) > 0 {
-
 		uploadedURLs := utils.ChangeFileUpload(c, oldProduct.Thumbnail)
-
 		if uploadedURLs == "" {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to upload file"})
 			return
 		}
-
 		newProduct.Thumbnail = uploadedURLs
+	} else {
+		newProduct.Thumbnail = oldProduct.Thumbnail
 	}
 
 	// Thực hiện truy vấn UPDATE để cập nhật thông tin danh mục
@@ -132,5 +150,35 @@ func UpdateProduct(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Product updated successfully",
 		"data": newProduct,
 	})
+}
 
+func DeleteProduct(c *gin.Context) {
+	productID := c.Param("id")
+
+	var thumbnail string
+	errGetDetail := database.DB.QueryRow("SELECT thumbnail FROM products WHERE id = ?", productID).Scan(&thumbnail)
+	if errGetDetail != nil {
+		if errGetDetail == sql.ErrNoRows {
+			c.JSON(http.StatusNotFound, gin.H{"error": "Product not found"})
+		} else {
+			fmt.Println("errGetDetail", errGetDetail)
+			c.JSON(http.StatusInternalServerError, gin.H{"error": errGetDetail})
+		}
+		return
+	}
+
+	errDeleteFile := utils.DeleteFile(path.Base(thumbnail))
+	if errDeleteFile != nil {
+		fmt.Println("errDeleteFile", errDeleteFile)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": errDeleteFile})
+		return
+	}
+
+	_, err := database.DB.Exec("DELETE FROM products WHERE id = ?", productID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete product"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Product deleted successfully"})
 }

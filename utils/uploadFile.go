@@ -52,7 +52,7 @@ func saveFile(fileReader io.Reader, fileHeader *multipart.FileHeader) (string, e
 	}
 
 	// Get the URL of the uploaded file
-	url := fmt.Sprintf("https://%s.s3.us-east-2.amazonaws.com/%s", constants.BucketName, fileHeader.Filename)
+	url := fmt.Sprintf("https://%s.%s/%s", constants.BucketName, constants.Url_s3, fileHeader.Filename)
 
 	return url, nil
 }

@@ -8,8 +8,8 @@ import (
 
 func SetupProductsRoutes(userGroup *gin.RouterGroup) {
 	userGroup.GET("/", controllers.GetProductList)
+	userGroup.GET("/:id", controllers.GetDetailProduct)
 	userGroup.POST("/", controllers.CreateProduct)
-	// userGroup.GET("/:id", controllers.GetDetailCategory)
 	userGroup.PUT("/:id", controllers.UpdateProduct)
-	// userGroup.DELETE("/:id", controllers.DeleteCategory)
+	userGroup.DELETE("/:id", controllers.DeleteProduct)
 }

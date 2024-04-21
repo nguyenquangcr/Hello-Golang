@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"database/sql"
-	"fmt"
 	"log"
 	database "my-app/Database"
 	"my-app/constants"
@@ -50,7 +49,7 @@ func GetDetailProduct(c *gin.Context) {
 	productID := c.Param("id")
 
 	var detailProduct models.Product
-	err := database.DB.QueryRow("SELECT * FROM products WHERE id = ?", productID).Scan(&detailProduct.ID, &detailProduct.Name, &detailProduct.Price,
+	err := database.DB.QueryRow(constants.GetDetailProductQuery, productID).Scan(&detailProduct.ID, &detailProduct.Name, &detailProduct.Price,
 		&detailProduct.Thumbnail, &detailProduct.Description, &detailProduct.CreatedAt, &detailProduct.UpdatedAt, &detailProduct.CategoryID)
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -100,13 +99,12 @@ func UpdateProduct(c *gin.Context) {
 	productID := c.Param("id")
 
 	var oldProduct models.Product
-	err := database.DB.QueryRow("SELECT name, price, thumbnail, description FROM products WHERE id = ?", productID).Scan(&oldProduct.Name, &oldProduct.Price, &oldProduct.Thumbnail, &oldProduct.Description)
+	err := database.DB.QueryRow(constants.GetDetailProductUpdateQuery, productID).Scan(&oldProduct.Name, &oldProduct.Price, &oldProduct.Thumbnail, &oldProduct.Description)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			c.JSON(http.StatusNotFound, gin.H{"error": "Product not found"})
 		} else {
-			fmt.Println("err", err)
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve product"})
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err})
 		}
 		return
 	}
@@ -139,11 +137,10 @@ func UpdateProduct(c *gin.Context) {
 	}
 
 	// Thực hiện truy vấn UPDATE để cập nhật thông tin danh mục
-	_, errUpdate := database.DB.Exec("UPDATE products SET name = ?, price = ?, thumbnail = ?, description = ? WHERE id = ?",
+	_, errUpdate := database.DB.Exec(constants.UpdateProductQuery,
 		newProduct.Name, newProduct.Price, newProduct.Thumbnail, newProduct.Description, productID)
 	if errUpdate != nil {
-		fmt.Println("err ", errUpdate)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update product"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": errUpdate})
 		return
 	}
 
@@ -156,12 +153,11 @@ func DeleteProduct(c *gin.Context) {
 	productID := c.Param("id")
 
 	var thumbnail string
-	errGetDetail := database.DB.QueryRow("SELECT thumbnail FROM products WHERE id = ?", productID).Scan(&thumbnail)
+	errGetDetail := database.DB.QueryRow(constants.GetThumbnailQuery, productID).Scan(&thumbnail)
 	if errGetDetail != nil {
 		if errGetDetail == sql.ErrNoRows {
 			c.JSON(http.StatusNotFound, gin.H{"error": "Product not found"})
 		} else {
-			fmt.Println("errGetDetail", errGetDetail)
 			c.JSON(http.StatusInternalServerError, gin.H{"error": errGetDetail})
 		}
 		return
@@ -169,12 +165,11 @@ func DeleteProduct(c *gin.Context) {
 
 	errDeleteFile := utils.DeleteFile(path.Base(thumbnail))
 	if errDeleteFile != nil {
-		fmt.Println("errDeleteFile", errDeleteFile)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": errDeleteFile})
 		return
 	}
 
-	_, err := database.DB.Exec("DELETE FROM products WHERE id = ?", productID)
+	_, err := database.DB.Exec(constants.DeleteProductQuery, productID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete product"})
 		return
